@@ -233,6 +233,8 @@
 
     window.onerror = function (message, source, lineno, colno, error) {
       console.error('Global Error Caught: ', message, ' at ', source, ':', lineno, ':', colno);
+      console.log("An unexpected error happened:(" + event);
+      console.log("Source" + event);
       if (window.TrackJS) {
         TrackJS.track(message);
       }
