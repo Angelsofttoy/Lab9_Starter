@@ -5,6 +5,10 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.trackjs.com/releases/current/tracker.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({ token: "53f4727bde1448e6bcb2d2dd0d2cfee6" });
+  </script>
   <title>Lab 9</title>
 
   <style>
@@ -88,6 +92,14 @@
   </main>
 
   <script>
+    class CustomError extends Error {
+      constructor(message, code) {
+        super(message);
+        this.name = this.constructor.name;
+        this.code = code;
+      }
+    }
+
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -95,13 +107,137 @@
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+
+      try {
+        // Check if inputs are valid numbers
+        if (isNaN(firstNum) || isNaN(secondNum)) {
+          throw new CustomError('Invalid input: Please enter valid numbers.', 400);
+        }
+
+        // Convert inputs to numbers
+        firstNum = Number(firstNum);
+        secondNum = Number(secondNum);
+
+        // Perform calculation and handle division by zero
+        let result;
+        switch (operator) {
+          case '+':
+            result = firstNum + secondNum;
+            break;
+          case '-':
+            result = firstNum - secondNum;
+            break;
+          case '*':
+            result = firstNum * secondNum;
+            break;
+          case '/':
+            if (secondNum === 0) {
+              throw new CustomError('Division by zero is not allowed.', 403);
+            }
+            result = firstNum / secondNum;
+            break;
+          default:
+            throw new CustomError('Unknown operator.', 404);
+        }
+
+        output.innerHTML = result;
+      } catch (error) {
+        if (error instanceof CustomError) {
+          console.error(`Error ${error.code}: ${error.message}`);
+          output.innerHTML = `Error ${error.code}: ${error.message}`;
+        } else {
+          console.error('Unexpected error:', error);
+          output.innerHTML = 'Unexpected error occurred.';
+        }
+      } finally {
+        console.log('Calculation attempted with inputs:', firstNum, secondNum, operator);
+      }
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
 
-    // Start your code here
-    // You may move this JS to another file if you wish
+    errorBtns.forEach(button => {
+      button.addEventListener('click', () => {
+        try {
+          switch (button.textContent) {
+            case 'Console Log':
+              console.log('This is a console log example.');
+              break;
+            case 'Console Error':
+              console.error('This is a console error example.');
+              break;
+            case 'Console Count':
+              console.count('Count Button Clicks');
+              break;
+            case 'Console Warn':
+              console.warn('This is a console warn example.');
+              break;
+            case 'Console Assert':
+              console.assert(false, 'This is a console assert example. The condition is false.');
+              break;
+            case 'Console Clear':
+              console.clear();
+              break;
+            case 'Console Dir':
+              let obj = { name: 'Alice', age: 30, job: 'Engineer' };
+              console.dir(obj);
+              break;
+            case 'Console dirxml':
+              let element = document.querySelector('main');
+              console.dirxml(element);
+              break;
+            case 'Console Group Start':
+              console.group('Grouped Messages');
+              console.log('Message inside group');
+              console.warn('Warning inside group');
+              break;
+            case 'Console Group End':
+              console.groupEnd();
+              break;
+            case 'Console Table':
+              let data = [
+                { name: 'Alice', age: 30 },
+                { name: 'Bob', age: 25 },
+                { name: 'Carol', age: 35 }
+              ];
+              console.table(data);
+              break;
+            case 'Start Timer':
+              console.time('Timer');
+              break;
+            case 'End Timer':
+              console.timeEnd('Timer');
+              break;
+            case 'Console Trace':
+              console.trace('Trace Example');
+              break;
+            case 'Trigger a Global Error':
+              throw new CustomError('This is a triggered global error.', 500);
+              break;
+            default:
+              throw new CustomError('Unknown button action.', 404);
+          }
+        } catch (error) {
+          if (error instanceof CustomError) {
+            console.error(`Error ${error.code}: ${error.message}`);
+            alert(`Error ${error.code}: ${error.message}`);
+          } else {
+            console.error('Unexpected error:', error);
+            alert('Unexpected error occurred.');
+          }
+        } finally {
+          console.log('Button click handled:', button.textContent);
+        }
+      });
+    });
+
+    window.onerror = function (message, source, lineno, colno, error) {
+      console.error('Global Error Caught: ', message, ' at ', source, ':', lineno, ':', colno);
+      if (window.TrackJS) {
+        TrackJS.track(message);
+      }
+      return true; 
+    };
   </script>
 </body>
 
